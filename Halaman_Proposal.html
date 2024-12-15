@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Mahasiswa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+    }
+
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #ffffff;
+      color: #000000;
+      padding: 10px 20px;
+      border-bottom: 1px solid #dcdcdc;
+    }
+
+    .navbar .title {
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar .title img {
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+    }
+
+    /* Search bar container */
+    .search-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    .search-container .search-bar {
+      display: flex;
+      align-items: center;
+      width: 60%;
+    }
+
+    .search-container input {
+      padding: 10px;
+      width: 80%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .search-container button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      background-color: #0056b3;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .search-container button:hover {
+      background-color: #003f8a;
+    }
+
+    /* Container */
+    .container {
+      padding: 20px;
+    }
+
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .header-section h2 {
+      margin: 0;
+    }
+
+    .header-section button {
+      padding: 10px 20px;
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .header-section button:hover {
+      background-color: #003f8a;
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 20px;
+      background-color: #f2f2f2;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    table th,
+    table td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #e6e6e6;
+      font-weight: bold;
+    }
+
+    .no-results {
+      text-align: center;
+      margin-top: 20px;
+      color: red;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-group input {
+      width: calc(100% - 10px);
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .btn-upload {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .btn-upload:hover {
+      background-color: #0056b3;
+    }
+
+    .close-modal {
+      float: right;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: red;
+    }
+
+    .close-modal:hover {
+      color: darkred;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="title">
+      <img src="https://via.placeholder.com/24" alt="Home Icon">
+      <span>Dashboard Mahasiswa</span>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-container">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Masukkan Judul Proposal...">
+      <button onclick="searchProposal()">Cari</button>
+    </div>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+    <div class="header-section">
+      <h2>Proposal Tugas Akhir</h2>
+      <button onclick="openModal()">Unggah Proposal</button>
+    </div>
+
+    <!-- Table for displaying proposals -->
+    <table>
+      <tbody id="proposalList"></tbody>
+    </table>
+    <div id="noResults" class="no-results" style="display:none;">Tidak ada proposal ditemukan.</div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="uploadModal">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeModal()">×</button>
+      <form id="uploadForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="judulProposal">Judul Proposal</label>
+          <input type="text" id="judulProposal">
+        </div>
+        <div class="form-group">
+          <label for="fileProposal">File Proposal</label>
+          <!-- Batasi hanya file PDF dan DOCX -->
+          <input type="file" id="fileProposal" accept=".pdf,.docx">
+        </div>
+        <button class="btn-upload" onclick="uploadProposal()">Unggah</button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Javascript -->
+  <script>
+    let proposals = [];
+
+    function openModal() {
+      document.getElementById('uploadModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('uploadModal').style.display = 'none';
+      document.getElementById('judulProposal').value = '';
+      document.getElementById('fileProposal').value = '';
+    }
+
+    function uploadProposal() {
+      const judul = document.getElementById('judulProposal').value;
+      const file = document.getElementById('fileProposal').files[0];
+
+      if (!judul || !file) {
+        alert('Judul dan file harus diisi!');
+        return;
+      }
+
+      const proposal = {
+        judul,
+        tanggal: new Date().toLocaleDateString(),
+        fileName: file.name,
+      };
+
+      proposals.push(proposal);
+      updateTable();
+      closeModal();
+    }
+
+    function updateTable(data = proposals) {
+      const list = document.getElementById('proposalList');
+      list.innerHTML = '';
+
+      if (data.length === 0) {
+        document.getElementById('noResults').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('noResults').style.display = 'none';
+      data.forEach((proposal, index) => {
+        const row = `
+          <tr>
+            <td>${proposal.judul}</td>
+            <td>${proposal.tanggal}</td>
+            <td>
+              <button onclick="deleteProposal(${index})">Hapus</button>
+            </td>
+          </tr>
+        `;
+        list.innerHTML += row;
+      });
+    }
+
+    function searchProposal() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = proposals.filter(p => p.judul.toLowerCase().includes(query));
+      updateTable(filtered);
+    }
+
+    function deleteProposal(index) {
+      if (confirm('Apakah Anda yakin ingin menghapus proposal ini?')) {
+        proposals.splice(index, 1);
+        updateTable();
+      }
+    }
+  </script>
+</body>
+
+</html>
