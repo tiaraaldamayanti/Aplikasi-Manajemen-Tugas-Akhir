@@ -22,39 +22,75 @@ $error_message = "";
 
 // Cek apakah form telah dikirim
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Debug: Tampilkan data POST yang diterima
+    echo "<pre>POST Data: ";
+    print_r($_POST);
+    echo "</pre>";
+
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
     $jenis_pengguna = trim($_POST['jenis_pengguna']);
 
+    // Debug: Tampilkan input pengguna setelah trim
+    echo "Input - Username: $username, Jenis Pengguna: $jenis_pengguna<br>";
+
     // Cek apakah username dan jenis pengguna valid
-    $query = "SELECT * FROM Daftarakun WHERE username = ? AND jenis_pengguna = ?";
+    $query = "SELECT * FROM daftarakun WHERE username = ? AND jenis_pengguna = ?";
     $stmt = $pdo->prepare($query);
-    $stmt->execute([$username, $jenis_pengguna]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user && password_verify($password, $user['password'])) {
-        // Set session untuk login berhasil
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['nama'] = $user['Nama_Lengkap'];
-        $_SESSION['jenis_pengguna'] = $user['jenis_pengguna'];
+    try {
+        $stmt->execute([$username, $jenis_pengguna]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Redirect berdasarkan jenis pengguna
-        switch ($user['jenis_pengguna']) {
-            case 'Mahasiswa':
-                header("Location: dashboard.html");
-                break;
-            case 'Dosen Pembimbing':
-                header("Location: dashboard_pembimbing.html");
-                break;
-            case 'Koordinator':
-                header("Location: dashboard_koordinator.html");
-                break;
-            default:
-                header("Location: dashboard.html");
+        // Debug: Tampilkan hasil query
+        echo "<pre>Query Result: ";
+        print_r($user);
+        echo "</pre>";
+
+        if ($user) {
+            // Debug: Password verifikasi
+            echo "Password (input): $password<br>";
+            echo "Password (hash dari DB): " . $user['password'] . "<br>";
+
+            if (password_verify($password, $user['password'])) {
+                // Set session untuk login berhasil
+                session_regenerate_id(true); // Amankan sesi
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['nama'] = $user['Nama_Lengkap'];
+                $_SESSION['jenis_pengguna'] = $user['jenis_pengguna'];
+
+                // Redirect berdasarkan jenis pengguna
+                switch ($user['jenis_pengguna']) {
+                    case 'Mahasiswa':
+                        header("Location: dashboard.php?role=Mahasiswa");
+                        break;
+                    case 'Dosen Pembimbing':
+                        header("Location: dashboard.php?role=Dosen Pembimbing");
+                        break;
+                    case 'Dosen Penguji':
+                        header("Location: dashboard.php?role=Dosen Penguji");
+                        break;
+                    case 'Koordinator':
+                        header("Location: dashboard.php?role=Koordinator");
+                        break;
+                    default:
+                        header("Location: dashboard.php");
+                }
+                exit;
+            } else {
+                // Debug: Password salah
+                echo "Password salah!<br>";
+                $error_message = "Username, password, atau jenis pengguna salah!";
+            }
+        } else {
+            // Debug: Pengguna tidak ditemukan
+            echo "Pengguna tidak ditemukan!<br>";
+            $error_message = "Username, password, atau jenis pengguna salah!";
         }
-        exit;
-    } else {
-        $error_message = "Username, password, atau jenis pengguna salah!";
+    } catch (PDOException $e) {
+        // Debug: Kesalahan query
+        echo "Query error: " . $e->getMessage() . "<br>";
+        $error_message = "Terjadi kesalahan pada sistem. Coba lagi nanti.";
     }
 }
 ?>
@@ -184,8 +220,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="input-field">
                 <label for="jenis_pengguna">Jenis Pengguna</label>
                 <select name="jenis_pengguna" id="jenis_pengguna" required>
+                    <option value="-">- Pilih Jenis Pengguna -</option>
                     <option value="Mahasiswa">Mahasiswa</option>
                     <option value="Dosen Pembimbing">Dosen Pembimbing</option>
+                    <option value="Dosen Pembimbing">Dosen Penguji</option>
                     <option value="Koordinator">Koordinator</option>
                 </select>
             </div>

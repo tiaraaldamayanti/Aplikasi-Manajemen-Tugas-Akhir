@@ -71,22 +71,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $profilStmt->execute([$nomor_induk, $nama, $username, $email]);
           }
 
-          // Redirect ke dashboard berdasarkan jenis pengguna
-          switch ($jenis_pengguna) {
-            case 'Mahasiswa':
-              $redirect_url = 'dashboard.html';
-              break;
-            case 'Dosen Pembimbing':
-              $redirect_url = 'dashboard_pembimbing.html';
-              break;
-            case 'Koordinator':
-              $redirect_url = 'dashboard_koordinator.html';
-              break;
-            default:
-              $redirect_url = 'dashboard.html'; 
-              break;
-          }
-
           // Redirect setelah pendaftaran sukses
           echo "<script>alert('Pendaftaran berhasil!'); window.location.href = '$redirect_url';</script>";
           exit;
@@ -237,6 +221,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <option value="-">- Pilih Jenis Pengguna -</option>
           <option value="Mahasiswa">Mahasiswa</option>
           <option value="Dosen Pembimbing">Dosen Pembimbing</option>
+          <option value="Dosen Pembimbing">Dosen Penguji</option>
           <option value="Koordinator">Koordinator</option>
         </select>
       </div>
